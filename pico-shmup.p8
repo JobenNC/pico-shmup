@@ -1,7 +1,7 @@
 pico-8 cartridge // http://www.pico-8.com
 version 42
 __lua__
-	-- globals
+-- globals
 
 white = 7
 
@@ -97,8 +97,8 @@ end
 
 player = {
  health = 5,
- x = 64,
- y = 64,
+ x = 60,
+ y = 115,
  w = 8,
  h = 8,
  acc = .2,
@@ -349,41 +349,46 @@ enemy.__index = enemy
 -- how do i detect when a wave
 -- is "done"?
 -- could check on enemy destruction
-wave_1 = {
- enemy:new(
-  1,
-  1,
-  {
-   m_type = b_right,
-   t = 0,
-   p1 = {x = 10, y = 10},
-   p2 = {x = 10, y = 80},
-   p3 = {x = 110, y = 80}
-  },
-  15
- ),
- enemy:new(
-  119,
-  1,
-  {
-   m_type = str_down,
-  },
-  10
- )
-}
+
+get_wave_one = function() 
+	return {
+	 enemy:new(
+	  1,
+	  1,
+	  {
+	   m_type = b_right,
+	   t = 0,
+	   p1 = {x = 10, y = 10},
+	   p2 = {x = 10, y = 80},
+	   p3 = {x = 110, y = 80}
+	  },
+	  15
+	 ),
+	 enemy:new(
+	  119,
+	  1,
+	  {
+	   m_type = str_down,
+	  },
+	  10
+	 )
+	}
+end
 
 -- how do i know which wave
 -- is active?
-wave_handler = {
+get_lvl_one_waves = function()
+ return {
   {
-   wave = wave_1,
+   wave = get_wave_one(),
    buffer = 10
   },
   {
-  	wave = wave_1,
+  	wave = get_wave_one(),
   	buffer = 0
   }
-}
+	}
+end
 -->8
 -- fx
 
@@ -482,8 +487,10 @@ bullet = {
 	   add(fx_list, _fx)
     sfx(collision_sfx)
     del(bullet_list, self)
-    _upd = game_over_update
-    _drw = game_over_draw
+    --_upd = game_over_update
+    --_drw = game_over_draw
+    _upd = gs_game_over.update
+    _drw = gs_game_over.draw
 	  end
 	 	if self.y > 127
 	  then 	
@@ -500,30 +507,29 @@ bullet.__index = bullet
 
 bullet_list = {}
 -->8
--- main
+-- game state
 
-// _update is a built-in. called once per update at 30 fps
-function game_loop_update()
- 
- player:update()
- 
- for _b in all(bullet_list)
-	do
-	 _b:update()
-	end
- 
- for _e in all(enemy_list)
- do
-  _e:update()
- end
- 
- for _fx in all (fx_list)
- do
-  _fx:update()
- end
-end
-
-function game_loop_draw()
+gs_level_one = {
+ -- music? score?
+ update = function()
+	 player:update()
+	 
+	 for _b in all(bullet_list)
+		do
+		 _b:update()
+		end
+	 
+	 for _e in all(enemy_list)
+	 do
+	  _e:update()
+	 end
+	 
+	 for _fx in all (fx_list)
+	 do
+	  _fx:update()
+	 end
+	end,
+ draw = function()
   cls()
   
   draw_starfield()
@@ -542,23 +548,11 @@ function game_loop_draw()
   do
    _fx:draw()
   end
-end
-
-function game_over_update()
- for _fx in all (fx_list)
- do
-  _fx:update()
- end
-end
-
-gs_level_one = {
- -- music? score?
- update = game_loop_update,
- draw = game_loop_draw,
+	end,
  init = function()
  -- initiate wave 1
 	 for _e in all(
-	  wave_handler[1].wave
+	  get_lvl_one_waves()[1].wave
 	 )
 	 do
 	  add(enemy_list, _e)
@@ -583,6 +577,32 @@ gs_title_screen = {
  end
 }
 
+gs_game_over = {
+ update = function()
+	 for _fx in all (fx_list)
+	 do
+	  _fx:update()
+	 end
+	 if btn(🅾️) and btn(❎)
+	 then
+	  clear_game()
+	  gs_level_one.init()
+	  _upd = gs_level_one.update
+	  _drw = gs_level_one.draw
+	 end
+	end,
+ draw = function()
+	 cls()
+	 draw_starfield()
+	 print("game over", 40, 60)
+	 print("press x+o", 40, 70)
+	 for _fx in all(fx_list)
+	 do
+	  _fx:draw()
+	 end
+	end
+}
+
 function _init()
  -- i could init player here
  -- but it's already a global
@@ -593,19 +613,18 @@ function _init()
 end
 
 function clear_game()
- enemy_list = {}
- fx_list = {}
-end
-
-function game_over_draw()
- cls()
- draw_starfield()
- print("game over", 60, 60)
- for _fx in all(fx_list)
+ -- reset player
+ player.x = 60
+ player.y = 115
+ player.x_vel = 0
+ player.y_vel = 0
+ -- clear enemies
+ for _e in all(enemy_list)
  do
-  _fx:draw()
+  del(enemy_list, _e)
  end
 end
+
 
 function _draw()
  _drw()
