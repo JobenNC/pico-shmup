@@ -1,7 +1,7 @@
 pico-8 cartridge // http://www.pico-8.com
 version 42
 __lua__
--- globals
+	-- globals
 
 white = 7
 
@@ -502,14 +502,6 @@ bullet_list = {}
 -->8
 -- main
 
-function game_over_update()
- for _fx in all (fx_list)
- do
-  _fx:update()
- end
-end
-
-
 // _update is a built-in. called once per update at 30 fps
 function game_loop_update()
  
@@ -528,43 +520,6 @@ function game_loop_update()
  for _fx in all (fx_list)
  do
   _fx:update()
- end
-end
-
--- call update pointer
-function _update()
- _upd()
-end
-
-function _init()
- -- i could init player here
- -- but it's already a global
- -- singleton
- _upd = game_loop_update
- _drw = game_loop_draw
- music(0)
- 
- -- initiate wave 1
- for _e in all(
-  wave_handler[1].wave
- )
- do
-  add(enemy_list, _e)
- end
-end
-
-function clear_game()
- enemy_list = {}
- fx_list = {}
-end
-
-function game_over_draw()
- cls()
- draw_starfield()
- print("game over", 60, 60)
- for _fx in all(fx_list)
- do
-  _fx:draw()
  end
 end
 
@@ -587,6 +542,69 @@ function game_loop_draw()
   do
    _fx:draw()
   end
+end
+
+function game_over_update()
+ for _fx in all (fx_list)
+ do
+  _fx:update()
+ end
+end
+
+gs_level_one = {
+ -- music? score?
+ update = game_loop_update,
+ draw = game_loop_draw,
+ init = function()
+ -- initiate wave 1
+	 for _e in all(
+	  wave_handler[1].wave
+	 )
+	 do
+	  add(enemy_list, _e)
+	 end
+ end
+}
+
+gs_title_screen = {
+ update = function()
+	 if btn(🅾️) and btn(❎)
+	 then
+	  gs_level_one.init()
+	  _upd = gs_level_one.update
+	  _drw = gs_level_one.draw
+	 end
+ end,
+ 
+ draw = function()
+  cls()
+  print("title screen", 40, 60)
+  print("press x+o", 40, 70)
+ end
+}
+
+function _init()
+ -- i could init player here
+ -- but it's already a global
+ -- singleton
+ _upd = gs_title_screen.update
+ _drw = gs_title_screen.draw
+ music(0)
+end
+
+function clear_game()
+ enemy_list = {}
+ fx_list = {}
+end
+
+function game_over_draw()
+ cls()
+ draw_starfield()
+ print("game over", 60, 60)
+ for _fx in all(fx_list)
+ do
+  _fx:draw()
+ end
 end
 
 function _draw()
@@ -617,6 +635,11 @@ function _draw()
   00,
   24
  )
+end
+
+-- call update pointer
+function _update()
+ _upd()
 end
 
 __gfx__
@@ -775,7 +798,7 @@ __label__
 55555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555
 
 __gff__
-0100000000000000000000000000000000000000000000000000000000000000000101010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0100000000000000000000000000000001010000000000000000000000000000000101010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
 c40100000c0500e050100501105013050120501305017050180500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
