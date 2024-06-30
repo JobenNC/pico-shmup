@@ -528,6 +528,12 @@ gs_level_one = {
 	 do
 	  _fx:update()
 	 end
+	 
+	 -- reload waves
+	 if #enemy_list == 0
+	 then
+	  gs_level_one.init()
+	 end
 	end,
  draw = function()
   cls()
@@ -551,6 +557,7 @@ gs_level_one = {
 	end,
  init = function()
  -- initiate wave 1
+  import "main_sprites.png"
 	 for _e in all(
 	  get_lvl_one_waves()[1].wave
 	 )
@@ -572,6 +579,7 @@ gs_title_screen = {
  
  draw = function()
   cls()
+  spr(0, 0, 0, 128, 128)
   print("title screen", 40, 60)
   print("press x+o", 40, 70)
  end
@@ -607,6 +615,9 @@ function _init()
  -- i could init player here
  -- but it's already a global
  -- singleton
+ 
+ import "test_title.png"
+ 
  _upd = gs_title_screen.update
  _drw = gs_title_screen.draw
  music(0)
@@ -622,6 +633,18 @@ function clear_game()
  for _e in all(enemy_list)
  do
   del(enemy_list, _e)
+ end
+ 
+ -- clear fx
+ for _fx in all(fx_list)
+ do
+  del(fx_list, _fx)
+ end
+ 
+ -- clear bullters
+ for _b in all(bullet_list)
+ do
+  del(bullet_list, _b)
  end
 end
 
