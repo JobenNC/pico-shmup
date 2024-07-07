@@ -322,10 +322,20 @@ enemy = {
 	 if aabb_collision(self, player)
 	 then
 	  -- enemy dies
-	  local _fx = explosion:new(self.x, self.y)
-	  add(fx_list, _fx)
-	  sfx(collision_sfx)
-	 	del(enemy_list, self)
+	  --local _fx = explosion:new(self.x, self.y)
+	  --add(fx_list, _fx)
+	  --sfx(collision_sfx)
+	 	--del(enemy_list, self)
+	 	
+	 	-- player dies
+	 	local _fx = explosion:new(self.x, self.y)
+   add(fx_list, _fx)
+   sfx(collision_sfx)
+   del(bullet_list, self)
+   --_upd = game_over_update
+   --_drw = game_over_draw
+   _upd = gs_game_over.update
+   _drw = gs_game_over.draw
 	 end
 	 
 	 if self.y >=127
@@ -594,6 +604,9 @@ bullet_list = {}
 
 gs_level_one = {
  -- music? score?
+ waves = get_lvl_one_waves(),
+ wave_counter = 1,
+ 
  update = function()
 	 player:update()
 	 
@@ -615,7 +628,16 @@ gs_level_one = {
 	 -- reload waves
 	 if #enemy_list == 0
 	 then
-	  gs_level_one.init()
+	  if gs_level_one.wave_counter >= 3
+	  then
+	   gs_level_one.waves = get_lvl_one_waves()
+	  	gs_level_one.wave_counter = 1
+	  else
+	  	gs_level_one.wave_counter += 1
+	  end
+	  gs_level_one.init(
+	   gs_level_one.wave_counter
+	  )
 	 end
 	end,
  draw = function()
@@ -638,11 +660,11 @@ gs_level_one = {
    _fx:draw()
   end
 	end,
- init = function()
+ init = function(wave_num)
  -- initiate wave 1
   --import "./main_sprites.png"
 	 for _e in all(
-	  get_lvl_one_waves()[1].wave
+	  gs_level_one.waves[wave_num].wave
 	 )
 	 do
 	  add(enemy_list, _e)
@@ -654,7 +676,7 @@ gs_title_screen = {
  update = function()
 	 if btn(🅾️) and btn(❎)
 	 then
-	  gs_level_one.init()
+	  gs_level_one.init(gs_level_one.wave_counter)
 	  _upd = gs_level_one.update
 	  _drw = gs_level_one.draw
 	 end
@@ -662,9 +684,9 @@ gs_title_screen = {
  
  draw = function()
   cls()
-  spr(48, 40, 40, 45, 65)
-  print("title screen", 40, 60)
-  print("press x+o", 40, 70)
+  spr(48, 40, 60, 45, 65)
+  print("title screen", 40, 40)
+  print("press x+o", 40, 50)
  end
 }
 
@@ -677,7 +699,9 @@ gs_game_over = {
 	 if btn(🅾️) and btn(❎)
 	 then
 	  clear_game()
-	  gs_level_one.init()
+	  gs_level_one.waves = get_lvl_one_waves()
+	  gs_level_one.wave_counter = 1
+	  gs_level_one.init(gs_level_one.wave_counter)
 	  _upd = gs_level_one.update
 	  _drw = gs_level_one.draw
 	 end
